@@ -1,22 +1,24 @@
-.colorButtons {
+		.colorButtons {
 			display: block;
 			margin: 20px 0;
 		}
 
 		canvas {
 			cursor: crosshair;
+			box-shadow: -6px 4px 18px 12px #3d0000;
+			
 		}
 
 		div#sidebar {
 			position: absolute;
-			left: 0;
+			left: 30px;
 			width: 150px;
 			padding: 20px 20px;
 			top: 0;
 		}
 
 		canvas#canvas {
-			left: 150px;
+			left: 300px;
 			top: 45px;
 		}
 
@@ -43,9 +45,9 @@
 
 		.colorpicker {
 			background: transparent;
-			height: 40px;
+			height: 45px;
 		}
 		body {
-		background: #46413e;
-		 color: #fff;
-	 }
+			background: #414141;
+		 	color: #fff;
+	 	}

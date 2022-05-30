@@ -8,6 +8,12 @@
 		var currentColor = "rgb(40,20,100)";
 		var currentColorCopy = "rgb(40,20,100)";
 		var currentBg = "black";
+		var beginX=0;
+		var beginY=0;
+		var endX=0;
+		var endY=0;
+		var beginToEndI=0;
+		var currentPosition =0;
 
 		//Запуск
 
@@ -46,7 +52,6 @@
 		document.getElementById('clearCache').addEventListener('click', function() {
 			localStorage.removeItem("savedCanvas");
 			linesArray = [];
-			console.log("Cache cleared!");
 		});
 
 		// Рисовка
@@ -67,7 +72,7 @@
 
 		canvas.addEventListener('mousedown', function() {mousedown(canvas, event);});
 		canvas.addEventListener('mousemove',function() {mousemove(canvas, event);});
-		canvas.addEventListener('mouseup',mouseup);
+		canvas.addEventListener('mouseup',function() {mouseup(canvas, event);});
 
 		//Объявление
 
@@ -119,7 +124,8 @@
 
 		function eraser() {
 			currentSize = 50;
-			currentColor = ctx.fillStyle
+			currentColor = currentBg;
+			beginToEndI= 0;
 		}
 
 		// Карандаш
@@ -127,12 +133,13 @@
 		function drawPen() {
 			currentSize = currentSizeCopy;
 			currentColor = currentColorCopy;
+			beginToEndI= 0;
 		}
 
 		//Квадрат
 
 		function sqrTool() {
-
+			beginToEndI= 1;
 		}
 
 		// Позиция мышки
@@ -149,26 +156,28 @@
 
 		function mousedown(canvas, evt) {
 			var mousePos = getMousePos(canvas, evt);
-			isMouseDown=true
-			var currentPosition = getMousePos(canvas, evt);
+			isMouseDown=true;
+			currentPosition = getMousePos(canvas, evt);
 			ctx.moveTo(currentPosition.x, currentPosition.y)
 			ctx.beginPath();
 			ctx.lineWidth  = currentSize;
 			ctx.lineCap = "round";
 			ctx.strokeStyle = currentColor;
-
+			beginX=currentPosition.x;
+			beginY=currentPosition.y;
 		}
 
 		// На движение
 
 		function mousemove(canvas, evt) {
-
-			if(isMouseDown){
-				var currentPosition = getMousePos(canvas, evt);
-				ctx.lineTo(currentPosition.x, currentPosition.y)
-				ctx.stroke();
-				store(currentPosition.x, currentPosition.y, currentSize, currentColor);
-			}
+				if(isMouseDown){
+					currentPosition = getMousePos(canvas, evt);
+					if (beginToEndI==0){
+					ctx.lineTo(currentPosition.x, currentPosition.y);
+					ctx.stroke();
+					store(currentPosition.x, currentPosition.y, currentSize, currentColor);
+					}
+				}
 		}
 
 		// Сохранение данных
@@ -185,23 +194,22 @@
 
 		// На отпуск
 
-		function mouseup() {
-			isMouseDown=false
-			store()
-		}
+		function mouseup(canvas, evt) {
+			currentPosition = getMousePos(canvas, evt);
+			endX=currentPosition.x;
+			endY=currentPosition.y;
+			isMouseDown=false;
+			store();
 
-		// Квадрат
-
-		function sqrDraw(canvas, evt) {
-			// var mousePos = getMousePos(canvas, evt);
-			// isMouseDown=true
-			// var currentPosition = getMousePos(canvas, evt);
-			// ctx.moveTo(currentPosition.x, currentPosition.y)
-			//ctx.beginPath();
-			//ctx.lineWidth  = currentSize;
-			//ctx.lineCap = "round";
-			// ctx.strokeStyle = currentColor;
-			// ctx.fillRect(currentPosition.x,currentPosition.y,100,100);
-    		// ctx.clearRect(currentPosition.x+5,currentPosition.y+5,60,60);
-
+			//Формы
+			switch (beginToEndI) {
+				case 1://квадрат
+					ctx.fillStyle = currentColorCopy;
+					ctx.fillRect(beginX,beginY,endX-beginX,endY-beginY);
+					ctx.stroke();
+				  break;
+				case 2:
+				  
+				  break;
+			  }
 		}

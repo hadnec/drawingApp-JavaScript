@@ -20,6 +20,7 @@
 		var tempImageDataCashed=0;
 		var saveObjNumber=0;
 		var saveArray =[];
+		var eraserTool=0;
 
 		// Start
 
@@ -128,6 +129,7 @@
 			currentSize = 50;
 			currentColor = currentBg;
 			beginToEndI= 0;
+			eraserTool=1;
 		}
 
 		// Pen
@@ -136,36 +138,42 @@
 			currentSize = currentSizeCopy;
 			currentColor = currentColorCopy;
 			beginToEndI= 0;
+			eraserTool=0;
 		}
 
 		// Square
 
 		function sqrFillTool() {
 			beginToEndI= 1;
+			eraserTool=0;
 		}
 		
 		// Circle
 
 		function circleDraw() {
 			beginToEndI= 2;
+			eraserTool=0;
 		}
 
 		// Empty square
 
 		function sqrTool() {
 			beginToEndI= 3;
+			eraserTool=0;
 		}
 
 		// Line
 
 		function lineDraw() {
 			beginToEndI= 4;
+			eraserTool=0;
 		}		
 
 		// Scissors
 
 		function copyPs() {
 			beginToEndI= 5;
+			eraserTool=0;
 		}
 
 		// Mouse position
@@ -185,15 +193,16 @@
 			isMouseDown=true;
 			currentPosition = getMousePos(canvas, evt);
 			ctx.moveTo(currentPosition.x, currentPosition.y);
-			ctx.strokeStyle = currentColor;
 			ctx.beginPath();
-			ctx.lineWidth  = currentSize;
 			ctx.lineCap = "round";
 			beginX=currentPosition.x;
 			beginY=currentPosition.y;
-			ctx.fillStyle = currentColor;
+			if (!eraserTool){
+				ctx.fillStyle = currentColorCopy;
+				ctx.strokeStyle = currentColorСopy;
+				ctx.lineWidth  = currentSizeCopy;
+			}
 		}
-
 		// Mouse move func +animation(not now ofc)
 
 		function mousemove(canvas, evt) {
@@ -203,23 +212,25 @@
 					switch (beginToEndI) {
 					case 0 :
 						ctx.fillStyle = currentColor;
+						ctx.lineWidth  = currentSize;
+						ctx.strokeStyle = currentColor;
 						ctx.lineTo(currentPosition.x, currentPosition.y);
 						ctx.stroke();
 					  break;
 					case 1:// Sqare
-					 
+
 					  break;
 				    case 2: // Circale
-					  
+
 					break;
 				    case 3: // Empty sqare
-					  
+
 				      break;
 				    case 4:// Line
-					  
+
 				      break;
 					case 5:// Sicissors
-				
+
 					  break;
 					  // maybe Window.requestAnimationFrame()
 				}
@@ -235,8 +246,6 @@
 			isMouseDown=false;
 
 			// Shape
-			ctx.fillStyle = currentColor;
-			ctx.lineWidth = currentSize;
 			switch (beginToEndI) {
 				case 1:// Sqare
 					ctx.fillRect(beginX,beginY,endX-beginX,endY-beginY);

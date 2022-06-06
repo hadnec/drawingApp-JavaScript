@@ -1,29 +1,34 @@
+		// Hotkeys - Ctrl+Z,Ctrl+Shift+Z
+
 		var isMouseDown=false;
 		var canvas = document.createElement('canvas');
 		var body = document.getElementsByTagName("body")[0];
 		var ctx = canvas.getContext('2d');
-		var linesArray = [];
+		var tempObj;
+		var currentPosition;
 		var currentSize = 4;
-		var currentSizeCopy = 4;
+		var currentSizeCopy = currentSize;
 		var currentColor = "rgb(40,20,100)";
-		var currentColorCopy = "rgb(40,20,100)";
+		var currentColorCopy = currentColor;
 		var currentBg = "black";
-		var beginX=0;
-		var beginY=0;
-		var endX=0;
-		var endY=0;
-		var beginToEndI=0;
-		var currentPosition =0;
+		var beginX;
+		var beginY;
+		var endX;
+		var endY;
+		var beginToEndI;
+		var tempImageData;
+		var tempImageDataCashed=0;
+		var saveObjNumber=0;
+		var saveArray =[];
 
-		//Запуск
+		// Start
 
 		createCanvas();
 
-		// Реакция на кнопки
+		// Event listeners
 
 		document.getElementById('canvasUpdate').addEventListener('click', function() {
 			createCanvas();
-			redraw();
 		});
 		document.getElementById('colorpicker').addEventListener('change', function() {
 			currentColor = this.value;
@@ -32,7 +37,6 @@
 		document.getElementById('bgcolorpicker').addEventListener('change', function() {
 			ctx.fillStyle = this.value;
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
-			redraw();
 			currentBg = ctx.fillStyle;
 		});
 		document.getElementById('controlSize').addEventListener('change', function() {
@@ -45,36 +49,36 @@
 		}, false);
 		document.getElementById('eraser').addEventListener('click', eraser);
 		document.getElementById('drawPen').addEventListener('click', drawPen);
+		document.getElementById('sqrFillTool').addEventListener('click', sqrFillTool);
 		document.getElementById('sqrTool').addEventListener('click', sqrTool);
+		document.getElementById('circleDraw').addEventListener('click', circleDraw);
+		document.getElementById('lineDraw').addEventListener('click', lineDraw);
+		document.getElementById('copyPs').addEventListener('click', copyPs);
 		document.getElementById('clear').addEventListener('click', createCanvas);
 		document.getElementById('save').addEventListener('click', save);
 		document.getElementById('load').addEventListener('click', load);
 		document.getElementById('clearCache').addEventListener('click', function() {
-			localStorage.removeItem("savedCanvas");
-			linesArray = [];
+			saveObjNumber=0;
 		});
 
-		// Рисовка
+		//Ctrl+Z and Ctrl+Shift+Z
 
-		function redraw() {
-				for (var i = 1; i < linesArray.length; i++) {
-					ctx.beginPath();
-					ctx.moveTo(linesArray[i-1].x, linesArray[i-1].y);
-					ctx.lineWidth  = linesArray[i].size;
-					ctx.lineCap = "round";
-					ctx.strokeStyle = linesArray[i].color;
-					ctx.lineTo(linesArray[i].x, linesArray[i].y);
-					ctx.stroke();
-				}
-		}
+		document.addEventListener('keydown', function(event) {
+			if (event.ctrlKey && event.key === 'z') {
+			 load();
+			}
+			if (event.ctrlKey && event.key === 'Z' && event.shiftKey) {
+				prevLoad();
+			   }
+			});
 
-		// Реакция на мышь
+		// Mouse listener
 
 		canvas.addEventListener('mousedown', function() {mousedown(canvas, event);});
 		canvas.addEventListener('mousemove',function() {mousemove(canvas, event);});
 		canvas.addEventListener('mouseup',function() {mouseup(canvas, event);});
 
-		//Объявление
+		//Create canvas
 
 		function createCanvas() {
 			canvas.id = "canvas";
@@ -86,41 +90,39 @@
 			ctx.fillStyle = currentBg;
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
 			body.appendChild(canvas);
+			save();
 		}
 
-		//Скачать
+		//Download
 
 		function downloadCanvas(link, canvas, filename) {
 			link.href = document.getElementById(canvas).toDataURL();
 			link.download = filename;
 		}
 
-		// Сохранение
+		// Save to cache
 
 		function save() {
-			localStorage.removeItem("savedCanvas");
-			localStorage.setItem("savedCanvas", JSON.stringify(linesArray));
+			saveObjNumber++;
+			tempObj=ctx.getImageData(0,0,canvas.width,canvas.height);
+			saveArray[saveObjNumber]=tempObj;
 		}
 
-		// Загрузка сохраненого
+		// Load to cache
 
 		function load() {
-			if (localStorage.getItem("savedCanvas") != null) {
-				linesArray = JSON.parse(localStorage.savedCanvas);
-				var lines = JSON.parse(localStorage.getItem("savedCanvas"));
-				for (var i = 1; i < lines.length; i++) {
-					ctx.beginPath();
-					ctx.moveTo(linesArray[i-1].x, linesArray[i-1].y);
-					ctx.lineWidth  = linesArray[i].size;
-					ctx.lineCap = "round";
-					ctx.strokeStyle = linesArray[i].color;
-					ctx.lineTo(linesArray[i].x, linesArray[i].y);
-					ctx.stroke();
-				}
-			}
+			saveObjNumber--;
+			ctx.putImageData(saveArray[saveObjNumber],0,0);
 		}
 
-		// Ластик
+		// Previous to load
+
+		function prevLoad() {
+			saveObjNumber++;
+			ctx.putImageData(saveArray[saveObjNumber],0,0);
+		}
+
+		// Eraser
 
 		function eraser() {
 			currentSize = 50;
@@ -128,7 +130,7 @@
 			beginToEndI= 0;
 		}
 
-		// Карандаш
+		// Pen
 
 		function drawPen() {
 			currentSize = currentSizeCopy;
@@ -136,13 +138,37 @@
 			beginToEndI= 0;
 		}
 
-		//Квадрат
+		// Square
 
-		function sqrTool() {
+		function sqrFillTool() {
 			beginToEndI= 1;
 		}
+		
+		// Circle
 
-		// Позиция мышки
+		function circleDraw() {
+			beginToEndI= 2;
+		}
+
+		// Empty square
+
+		function sqrTool() {
+			beginToEndI= 3;
+		}
+
+		// Line
+
+		function lineDraw() {
+			beginToEndI= 4;
+		}		
+
+		// Scissors
+
+		function copyPs() {
+			beginToEndI= 5;
+		}
+
+		// Mouse position
 
 		function getMousePos(canvas, evt) {
 			var rect = canvas.getBoundingClientRect();
@@ -152,64 +178,91 @@
 			};
 		}
 
-		// На зажатие
+		// Mouse Down func
 
 		function mousedown(canvas, evt) {
 			var mousePos = getMousePos(canvas, evt);
 			isMouseDown=true;
 			currentPosition = getMousePos(canvas, evt);
-			ctx.moveTo(currentPosition.x, currentPosition.y)
+			ctx.moveTo(currentPosition.x, currentPosition.y);
+			ctx.strokeStyle = currentColor;
 			ctx.beginPath();
 			ctx.lineWidth  = currentSize;
 			ctx.lineCap = "round";
-			ctx.strokeStyle = currentColor;
 			beginX=currentPosition.x;
 			beginY=currentPosition.y;
+			ctx.fillStyle = currentColor;
 		}
 
-		// На движение
+		// Mouse move func +animation(not now ofc)
 
 		function mousemove(canvas, evt) {
 				if(isMouseDown){
 					currentPosition = getMousePos(canvas, evt);
-					if (beginToEndI==0){
-					ctx.lineTo(currentPosition.x, currentPosition.y);
-					ctx.stroke();
-					store(currentPosition.x, currentPosition.y, currentSize, currentColor);
-					}
+					// Shape anim
+					switch (beginToEndI) {
+					case 0 :
+						ctx.fillStyle = currentColor;
+						ctx.lineTo(currentPosition.x, currentPosition.y);
+						ctx.stroke();
+					  break;
+					case 1:// Sqare
+					 
+					  break;
+				    case 2: // Circale
+					  
+					break;
+				    case 3: // Empty sqare
+					  
+				      break;
+				    case 4:// Line
+					  
+				      break;
+					case 5:// Sicissors
+				
+					  break;
+					  // maybe Window.requestAnimationFrame()
 				}
-		}
-
-		// Сохранение данных
-
-		function store(x, y, s, c) {
-			var line = {
-				"x": x,
-				"y": y,
-				"size": s,
-				"color": c
 			}
-			linesArray.push(line);
 		}
 
-		// На отпуск
+		// Mouse up func+ already paint in canvas
 
 		function mouseup(canvas, evt) {
 			currentPosition = getMousePos(canvas, evt);
 			endX=currentPosition.x;
 			endY=currentPosition.y;
 			isMouseDown=false;
-			store();
 
-			//Формы
+			// Shape
+			ctx.fillStyle = currentColor;
+			ctx.lineWidth = currentSize;
 			switch (beginToEndI) {
-				case 1://квадрат
-					ctx.fillStyle = currentColorCopy;
+				case 1:// Sqare
 					ctx.fillRect(beginX,beginY,endX-beginX,endY-beginY);
-					ctx.stroke();
 				  break;
-				case 2:
-				  
+				case 2: // Circale
+					ctx.arc((endX+beginX)/2, (endY+beginY)/2, (Math.abs(endX-beginX)+Math.abs(endY-beginY))/Math.PI, 0, 2 * Math.PI);
+				  break;
+				case 3: // Empty sqare
+					ctx.rect(beginX,beginY,endX-beginX,endY-beginY);
+				  break;
+				case 4:// Line
+					ctx.moveTo(beginX,beginY);
+					ctx.lineTo(endX, endY);
+				  break;
+				case 5:// Sicirssors
+					if (!tempImageDataCashed){
+						tempImageData = ctx.getImageData(beginX,beginY,endX-beginX,endY-beginY);
+						ctx.fillStyle = currentBg;
+						ctx.fillRect(beginX,beginY,endX-beginX,endY-beginY);
+						tempImageDataCashed=1;
+					}else{
+						ctx.putImageData(tempImageData, beginX, beginY);
+						tempImageDataCashed=0;
+					}
 				  break;
 			  }
+			  ctx.stroke();
+			  save();
 		}
